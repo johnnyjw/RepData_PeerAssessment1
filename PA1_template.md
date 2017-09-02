@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 Author: Jonathan Wharton
 Date: 28Aug2017
@@ -14,7 +9,8 @@ Details: Summary analysis of activity data from personal activity monitoring dev
 
 Note: The working directory may need to be changed for this to work.
 
-``` {R LoadClean, echo=TRUE }
+
+```r
 #1. Load the data (i.e. read.csv())
 unzip('activity.zip')
 activity <- read.csv('activity.csv')
@@ -25,10 +21,30 @@ activity$date <- as.Date(activity$date)
 
 ## What is mean total number of steps taken per day?  
 
-``` {R MeanSteps, echo=TRUE }
 
+```r
 #1. calculate total number of steps taken per day, ignoring missing values
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 act_by_day <- activity %>% 
      group_by(date) %>%
      summarise(steps_day = sum(steps, na.rm=TRUE))
@@ -37,18 +53,21 @@ act_by_day <- activity %>%
 hist(act_by_day$steps_day,
      main='Histogram for total steps per day',
      xlab= 'Steps per day')
+```
 
+![](PA1_template_files/figure-html/MeanSteps-1.png)<!-- -->
+
+```r
 #3. Get mean and median for steps per day.
 mean_steps <- mean(act_by_day$steps_day)
 median_steps <- median(act_by_day$steps_day)
-
-
 ```
-The mean steps per day is `r format(mean_steps, scientific=FALSE)`.  
-The median steps per day is `r median_steps`.  
+The mean steps per day is 9354.23.  
+The median steps per day is 10395.  
 
 ## What is the average daily activity pattern?
-``` {R DailySteps, echo=TRUE, fig.height = 4 }
+
+```r
 #1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 #first create summary dataset
 by_interval <- activity %>% 
@@ -63,29 +82,33 @@ ggplot(by_interval, mapping = aes(interval,steps_interval)) +
     xlab("Interval number") +
     ylab("Average number of steps") +
     ggtitle("Time series plot of the 5-min intervals and the avg num steps", subtitle = NULL)
-
 ```
 
-``` {R MaxSteps, echo=TRUE}
+![](PA1_template_files/figure-html/DailySteps-1.png)<!-- -->
+
+
+```r
 #2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 max_record <- by_interval %>%
     filter(steps_interval == max(steps_interval))
 
 max_interval <- max_record$interval[1]
 ```
-The interval with (on average) the maximum number of steps is interval `r format(max_interval, scientific=FALSE)`.  
+The interval with (on average) the maximum number of steps is interval 835.  
 
 ## Imputing missing values
-``` {R MissingRows, echo=TRUE}
+
+```r
 #1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 num_missing <- activity %>%
      filter(is.na(steps)) %>%
      nrow()
 ```
-The number of missing values in the dataset are `r format(num_missing, scientific=FALSE)`. 
+The number of missing values in the dataset are 2304. 
 
 Imputation method chosen is filling missing values with mean for each interval.
-``` {R Imputation, echo=TRUE}
+
+```r
 #2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 # Fill na with mean value for each interval
 
@@ -111,19 +134,24 @@ act_nona_by_day <- activity_nona %>%
 hist(act_nona_by_day$steps_day,
      main='Histogram for total steps per day',
      xlab= 'Steps per day')
+```
 
+![](PA1_template_files/figure-html/Imputation-1.png)<!-- -->
+
+```r
 #mean and median total number of steps
 mean_nona_steps <- mean(act_nona_by_day$steps_day)
 median_nona_steps <- median(act_nona_by_day$steps_day)
 ```
-The imputed mean steps per day is `r format(mean_nona_steps, scientific=FALSE)`.  
-The imputed median steps per day is `r format(median_nona_steps, scientific=FALSE)`.
+The imputed mean steps per day is 10766.19.  
+The imputed median steps per day is 10766.19.
 
 The impact of imputing the data on the missing steps is increasing the total steps per day as shown by the increase in mean and median.  The histogram shows that this boost appears to affect days with 0-5000 steps where there is a reduction in the frequency, while a very similar increase in frequency of 10000-15000 steps per day takes place.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-``` {r weekday_weekend, echo=TRUE, fig.height=4}
+
+```r
 #1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 activity_wd_we <- activity_nona 
 activity_wd_we$weekend <- as.factor(ifelse(weekdays(activity_wd_we$date) %in% c('Saturday', 'Sunday'),"Weekend","Weekday"))
@@ -143,5 +171,6 @@ xyplot(steps_interval ~ interval | weekend,
        layout = c(1, 2),
        xlab = 'Interval',
        ylab = 'Number of steps')
-
 ```
+
+![](PA1_template_files/figure-html/weekday_weekend-1.png)<!-- -->
